@@ -1,9 +1,16 @@
-node_modules
-dist
-.DS_Store
-database.db
-server/uploads
-*.log
-.env
-.env.local
+# build output
+/bin/
+/dist/
+*.test
+*.out
 
+# local data
+/data/
+*.db
+*.db-wal
+*.db-shm
+
+# env / editor
+.env
+.env.*
+.DS_Store
