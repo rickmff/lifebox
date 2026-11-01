@@ -1,14 +1,10 @@
-# build output
-/.bin/
-/dist/
-*.test
-*.out
+# Python
+__pycache__/
+*.pyc
 
-# local data
-/data/
-*.db
-*.db-wal
-*.db-shm
+# local working files (video frames, test vaults, build output)
+/.work/
+/dist/
 
 # env / editor
 .env
