@@ -10,3 +10,6 @@ __pycache__/
 .env
 .env.*
 .DS_Store
+
+# video fonts (downloaded, see docs/video/README.md)
+/docs/video/fonts/

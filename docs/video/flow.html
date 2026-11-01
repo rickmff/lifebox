@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Geist"; src: url("fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: "Geist Mono"; src: url("fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; }
+  html, body { margin: 0; background: #000; }
+  svg { display: block; font-family: "Geist", ui-sans-serif, system-ui, sans-serif; }
+  .mono { font-family: "Geist Mono", ui-monospace, monospace; }
+  .card { fill: #0a0a0a; stroke: #2e2e2e; stroke-width: 1; }
+  .card.on { stroke: #ededed; }
+  .lbl { fill: #8f8f8f; font-size: 11px; letter-spacing: .08em; }
+  .ttl { fill: #ededed; font-size: 18px; font-weight: 500; letter-spacing: -.02em; }
+  .edge { fill: none; stroke: #2e2e2e; stroke-width: 1; }
+  .beam { fill: none; stroke: #ededed; stroke-width: 1.5; stroke-linecap: round; filter: url(#glow); }
+  .head { fill: #fff; filter: url(#glow); }
+  .capt { fill: #ededed; font-size: 30px; font-weight: 600; letter-spacing: -.04em; }
+  .caps { fill: #8f8f8f; font-size: 16px; }
+  .stepn { fill: #8f8f8f; font-size: 12px; letter-spacing: .08em; }
+  .bar { fill: #2e2e2e; } .bar.on { fill: #ededed; }
+  .chat { fill: #0a0a0a; stroke: #2e2e2e; }
+  .ctxt { fill: #ededed; font-size: 13px; }
+  .cdim { fill: #8f8f8f; font-size: 13px; }
+  .word { fill: #ededed; font-size: 17px; font-weight: 600; letter-spacing: -.03em; }
+</style>
+</head>
+<body>
+<svg width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g id="scene">
+    <g id="brand">
+      <rect x="56" y="50" width="16" height="13" rx="2.5" fill="none" stroke="#ededed" stroke-width="1.5"/>
+      <path d="M56 54.5 H72 M61.5 58 H66.5" stroke="#ededed" stroke-width="1.5" stroke-linecap="round"/>
+      <text class="word" x="82" y="63">lifebox</text>
+    </g>
+
+    <g id="edges">
+      <path id="e-drop" class="edge" d="M280 274 L380 274"/>
+      <path id="e-read" class="edge" d="M590 262 L690 262"/>
+      <path id="e-write" class="edge" d="M690 286 L590 286"/>
+      <path id="e-cal" class="edge" d="M900 274 L1000 274"/>
+      <path id="e-ask" class="edge" d="M175 318 C175 470 720 470 720 318"/>
+      <path id="e-remind" class="edge" d="M1105 230 C1105 110 175 110 175 230"/>
+    </g>
+    <g id="beams"></g>
+    <g id="nodes"></g>
+
+    <g id="chat" opacity="0">
+      <rect class="chat" x="742" y="336" width="250" height="122" rx="10"/>
+      <text class="ctxt" x="758" y="362">“What do I need to renew</text>
+      <text class="ctxt" x="758" y="380">my driver's license?”</text>
+      <text class="cdim" x="758" y="408"><tspan fill="#ededed">✓</tspan> Driver's license · 2027-03-12</text>
+      <text class="cdim" x="758" y="428"><tspan fill="#ededed">✓</tspan> ID card</text>
+      <text class="cdim" x="758" y="448">○ Medical certificate — missing</text>
+    </g>
+
+    <g id="capg">
+      <text id="stepn" class="stepn mono" x="640" y="560" text-anchor="middle"></text>
+      <text id="capt" class="capt" x="640" y="602" text-anchor="middle"></text>
+      <text id="caps" class="caps" x="640" y="634" text-anchor="middle"></text>
+      <g id="bars"></g>
+    </g>
+  </g>
+</svg>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const NODES = {
+  you:      { x: 70,   y: 230, w: 210, h: 88, lbl: "YOU",      ttl: "You" },
+  drive:    { x: 380,  y: 230, w: 210, h: 88, lbl: "STORAGE",  ttl: "Your Drive" },
+  claude:   { x: 690,  y: 230, w: 210, h: 88, lbl: "AGENT",    ttl: "Claude + lifebox" },
+  calendar: { x: 1000, y: 230, w: 210, h: 88, lbl: "CALENDAR", ttl: "Your calendar" },
+};
+const STEPS = [
+  { nodes: ["you", "drive"], edges: ["e-drop"],
+    t: "Drop it in your Drive.", s: "Scan a document or save an attachment into Lifebox/Inbox." },
+  { nodes: ["drive", "claude"], edges: ["e-read", "e-write"],
+    t: "Claude files it.", s: "It reads the document, names it by expiry date and records the details in your Drive." },
+  { nodes: ["you", "claude"], edges: ["e-ask"], chat: true,
+    t: "Ask what you need.", s: "Answers come from your own documents, with links." },
+  { nodes: ["claude", "calendar"], edges: ["e-cal"],
+    t: "Get a dated plan.", s: "Every step of the process, scheduled in your calendar." },
+  { nodes: ["calendar", "you"], edges: ["e-remind"],
+    t: "Never miss a deadline.", s: "Reminders arrive before anything expires." },
+];
+
+const ng = document.getElementById("nodes");
+for (const [id, n] of Object.entries(NODES)) {
+  const g = document.createElementNS(NS, "g"); g.id = "n-" + id;
+  g.innerHTML = `<rect class="card" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="12"/>` +
+    `<text class="lbl mono" x="${n.x + 20}" y="${n.y + 34}">${n.lbl}</text>` +
+    `<text class="ttl" x="${n.x + 20}" y="${n.y + 62}">${n.ttl}</text>`;
+  ng.appendChild(g);
+}
+const bars = document.getElementById("bars");
+STEPS.forEach((_, i) => {
+  const r = document.createElementNS(NS, "rect");
+  r.setAttribute("x", 640 - STEPS.length * 14 + i * 28 + 3); r.setAttribute("y", 668);
+  r.setAttribute("width", 22); r.setAttribute("height", 2); r.setAttribute("rx", 1); r.setAttribute("class", "bar");
+  bars.appendChild(r);
+});
+
+const INTRO = 22, TRAVEL = 26, HOLD = 30, PER = TRAVEL + HOLD, OUTRO = 16;
+window.TOTAL_FRAMES = INTRO + STEPS.length * PER + OUTRO;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = t => 1 - Math.pow(1 - t, 3);
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+window.render = function (frame) {
+  document.getElementById("brand").setAttribute("opacity", ease(clamp(frame / 10)));
+  Object.keys(NODES).forEach((id, i) => {
+    const p = ease(clamp((frame - 2 - i * 3) / 12));
+    const g = document.getElementById("n-" + id);
+    g.setAttribute("opacity", p);
+    g.setAttribute("transform", `translate(0 ${(1 - p) * 8})`);
+  });
+  document.getElementById("edges").setAttribute("opacity", ease(clamp((frame - 12) / 10)));
+
+  const f = frame - INTRO;
+  let si = Math.floor(f / PER);
+  const ending = si >= STEPS.length;
+  si = clamp(si, 0, STEPS.length - 1);
+  const local = ending ? PER : Math.max(0, f - si * PER);
+  const st = STEPS[si];
+  const started = f >= 0;
+
+  document.querySelectorAll(".card").forEach(c => c.classList.remove("on"));
+  if (started) st.nodes.forEach(n => document.querySelector(`#n-${n} .card`).classList.add("on"));
+
+  const beams = document.getElementById("beams");
+  beams.innerHTML = "";
+  if (started && !ending) {
+    const t = easeIO(clamp(local / TRAVEL));
+    const paths = st.edges.map(id => document.getElementById(id));
+    const lens = paths.map(p => p.getTotalLength());
+    let d = t * lens.reduce((a, b) => a + b, 0);
+    const fade = 1 - clamp((local - TRAVEL) / 12);
+    paths.forEach((p, i) => {
+      const len = lens[i], tr = clamp(d, 0, len);
+      if (d > 0 && fade > 0) {
+        const b = document.createElementNS(NS, "path");
+        b.setAttribute("d", p.getAttribute("d")); b.setAttribute("class", "beam");
+        const s0 = Math.max(0, tr - 70);
+        b.setAttribute("stroke-dasharray", `0 ${s0} ${tr - s0} ${len + 70}`);
+        b.setAttribute("opacity", fade);
+        beams.appendChild(b);
+        if (d < len && local < TRAVEL) {
+          const pt = p.getPointAtLength(tr);
+          const c = document.createElementNS(NS, "circle");
+          c.setAttribute("cx", pt.x); c.setAttribute("cy", pt.y); c.setAttribute("r", 3); c.setAttribute("class", "head");
+          beams.appendChild(c);
+        }
+      }
+      d -= len;
+    });
+  }
+
+  const chat = st.chat && started && !ending ? ease(clamp((local - TRAVEL + 6) / 10)) : 0;
+  document.getElementById("chat").setAttribute("opacity", chat);
+  document.getElementById("chat").setAttribute("transform", `translate(0 ${(1 - chat) * 6})`);
+
+  const capIn = started ? ease(clamp(local / 10)) : 0;
+  const capOut = started && !ending && si < STEPS.length - 1 ? 1 - clamp((local - PER + 6) / 6) : 1;
+  ["stepn", "capt", "caps"].forEach(id => {
+    const el = document.getElementById(id);
+    el.setAttribute("opacity", capIn * capOut);
+    el.setAttribute("transform", `translate(0 ${(1 - capIn) * 6})`);
+  });
+  document.getElementById("stepn").textContent = `0${si + 1}`;
+  document.getElementById("capt").textContent = st.t;
+  document.getElementById("caps").textContent = st.s;
+  document.querySelectorAll(".bar").forEach((b, i) => b.classList.toggle("on", started && i <= si));
+
+  // loop-friendly ending: fade everything out so the video restarts cleanly
+  const out = ending ? clamp((f - STEPS.length * PER) / 14) : 0;
+  document.getElementById("scene").setAttribute("opacity", 1 - out);
+};
+render(0);
+</script>
+</body>
+</html>
