@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lifebox</title>
+<!--
+  lifebox dashboard template.
+  Replace ONLY the JSON inside <script id="lifebox-data">. Dates are YYYY-MM-DD; status and
+  days left are computed here, so pass raw dates. No external resources: safe as an artifact.
+-->
+<style>
+  :root {
+    --bg: #fafafa; --card: #fff; --line: #ebebeb; --text: #171717; --muted: #6f6f6f;
+    --expired: #d93036; --urgent: #f5a623; --soon: #0a72ef; --ok: #2e7d32; --none: #8f8f8f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --card: #111; --line: #262626; --text: #ededed; --muted: #a1a1a1;
+      --expired: #ff6166; --urgent: #ffb224; --soon: #52a8ff; --ok: #62c073; --none: #8f8f8f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 22px; letter-spacing: -.02em; margin: 0; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+       letter-spacing: .06em; margin: 32px 0 12px; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .muted { color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 20px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 24px; letter-spacing: -.02em; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .timeline { position: relative; height: 128px; overflow: hidden; }
+  .axis { position: absolute; left: 16px; right: 16px; top: 58px; border-top: 1px solid var(--line); }
+  .tick, .label { position: absolute; white-space: nowrap; font-size: 11px; }
+  .tick { top: 100px; color: var(--muted); }
+  .label { color: var(--text); }
+  .label.up { top: 30px; } .label.down { top: 70px; }
+  .mark { position: absolute; top: 52px; width: 12px; height: 12px; border-radius: 50%;
+          transform: translateX(-50%); border: 2px solid var(--card); }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .chip { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px;
+          padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .chip[aria-pressed="true"] { border-color: var(--text); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; font-weight: 500; color: var(--muted); }
+  tr:last-child td { border-bottom: 0; }
+  a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  .status { font-size: 12px; white-space: nowrap; }
+  .plan { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; padding: 14px; border-bottom: 1px solid var(--line); }
+  .plan:last-child { border-bottom: 0; }
+  .bar { grid-column: 1 / -1; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--text); }
+  .empty { padding: 16px; color: var(--muted); }
+  @media (max-width: 560px) { .hide-sm { display: none; } th, td { padding: 8px 10px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Lifebox</h1>
+    <span class="muted mono" id="generated"></span>
+  </header>
+  <section class="stats" id="stats" aria-label="Summary"></section>
+
+  <h2>Next 12 months</h2>
+  <div class="card timeline" id="timeline" aria-label="Expiry timeline"></div>
+
+  <h2>Documents</h2>
+  <div class="filters" id="filters"></div>
+  <div class="card"><table>
+    <thead><tr><th>Document</th><th class="hide-sm">Holder</th><th>Expires</th><th>Status</th></tr></thead>
+    <tbody id="docs"></tbody>
+  </table></div>
+
+  <h2>Plans</h2>
+  <div class="card" id="plans"></div>
+</main>
+
+<script id="lifebox-data" type="application/json">
+{
+  "today": "2026-11-01",
+  "documents": [
+    {"title": "Passport", "holder": "Alex", "type": "passport", "expires": "2027-06-30", "link": "#"},
+    {"title": "Driver's License", "holder": "Alex", "type": "driver_license", "expires": "2027-03-12", "link": "#"},
+    {"title": "Car Insurance", "holder": "Sam", "type": "vehicle_insurance", "expires": "2026-11-20", "link": "#"},
+    {"title": "ID Card", "holder": "Sam", "type": "national_id", "expires": "2026-10-20", "link": "#"},
+    {"title": "Lease", "holder": "Alex", "type": "lease", "expires": "2027-09-30", "link": "#"},
+    {"title": "Birth Certificate", "holder": "Sam", "type": "birth_certificate", "expires": null, "link": "#"}
+  ],
+  "plans": [
+    {"title": "Renew driver's license", "holder": "Alex", "deadline": "2027-03-12", "done": 2, "total": 6, "link": "#"}
+  ]
+}
+</script>
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById("lifebox-data").textContent);
+  const DAY = 86400000;
+  const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const today = data.today ? parse(data.today) : parse(new Date().toISOString().slice(0, 10));
+  const STATUS = {
+    expired: ["Expired", "var(--expired)"], urgent: ["≤ 30 days", "var(--urgent)"],
+    soon: ["≤ 90 days", "var(--soon)"], ok: ["Later", "var(--ok)"], none: ["No expiry", "var(--none)"],
+  };
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+  const docs = (data.documents || []).map(d => {
+    const left = d.expires ? Math.round((parse(d.expires) - today) / DAY) : null;
+    const status = left === null ? "none" : left < 0 ? "expired" : left <= 30 ? "urgent" : left <= 90 ? "soon" : "ok";
+    return { ...d, left, status };
+  });
+  const order = { expired: 0, urgent: 1, soon: 2, ok: 3, none: 4 };
+  docs.sort((a, b) => order[a.status] - order[b.status] || (a.left ?? 1e9) - (b.left ?? 1e9));
+
+  document.getElementById("generated").textContent = "as of " + today.toISOString().slice(0, 10);
+
+  const counts = Object.fromEntries(Object.keys(STATUS).map(k => [k, docs.filter(d => d.status === k).length]));
+  document.getElementById("stats").innerHTML = Object.entries(STATUS).map(([k, [label, color]]) =>
+    `<div class="stat"><b>${counts[k]}</b><span class="dot" style="background:${color}"></span>${label}</div>`).join("");
+
+  // timeline: today → +365 days; expired documents are in the stats and the table
+  const tl = document.getElementById("timeline");
+  const span = 365;
+  const pos = f => `calc(16px + (100% - 32px) * ${f})`;
+  const align = f => f < 0.1 ? "translateX(-6px)" : f > 0.9 ? "translateX(calc(-100% + 6px))" : "translateX(-50%)";
+  let html = '<div class="axis"></div>';
+  for (let m = 1; m <= 12; m++) {
+    const t = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + m, 1));
+    const f = (t - today) / DAY / span;
+    if (m % 3 === 1 && f <= 1) html += `<div class="tick mono" style="left:${pos(f)};transform:${align(f)}">${t.toISOString().slice(0, 7)}</div>`;
+  }
+  const lastLabel = { up: -1, down: -1 };
+  docs.filter(d => d.left !== null && d.left >= 0 && d.left <= span).forEach(d => {
+    const f = d.left / span;
+    html += `<div class="mark" title="${esc(d.title)} · ${esc(d.holder)} · ${esc(d.expires)}"
+      style="left:${pos(f)};background:${STATUS[d.status][1]}"></div>`;
+    const row = f - lastLabel.up >= 0.16 ? "up" : f - lastLabel.down >= 0.16 ? "down" : null;
+    if (row) {
+      lastLabel[row] = f;
+      html += `<div class="label ${row}" style="left:${pos(f)};transform:${align(f)}">${esc(d.title)}</div>`;
+    }
+  });
+  tl.innerHTML = html;
+
+  // documents table with holder filter
+  const holders = [...new Set(docs.map(d => d.holder).filter(Boolean))];
+  let active = null;
+  const filters = document.getElementById("filters");
+  const renderFilters = () => {
+    filters.innerHTML = ["All", ...holders].map(h =>
+      `<button class="chip" aria-pressed="${(h === "All" && !active) || h === active}" data-h="${esc(h)}">${esc(h)}</button>`).join("");
+  };
+  const renderDocs = () => {
+    const rows = docs.filter(d => !active || d.holder === active).map(d => {
+      const [label, color] = STATUS[d.status];
+      const when = d.left === null ? "—" : d.left < 0 ? `${-d.left} days ago` : `in ${d.left} days`;
+      const title = d.link ? `<a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(d.title)}</a>` : esc(d.title);
+      return `<tr><td>${title}</td><td class="hide-sm">${esc(d.holder)}</td>
+        <td class="mono">${esc(d.expires || "—")}</td>
+        <td class="status"><span class="dot" style="background:${color}"></span>${label} <span class="muted">${when}</span></td></tr>`;
+    });
+    document.getElementById("docs").innerHTML = rows.join("") || '<tr><td colspan="4" class="empty">No documents yet.</td></tr>';
+  };
+  filters.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    active = b.dataset.h === "All" ? null : b.dataset.h; renderFilters(); renderDocs();
+  });
+  if (holders.length > 1) renderFilters(); else filters.remove();
+  renderDocs();
+
+  // plans
+  const plans = (data.plans || []).map(p => {
+    const pct = p.total ? Math.round(100 * p.done / p.total) : 0;
+    const title = p.link ? `<a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.title)}</a>` : esc(p.title);
+    return `<div class="plan"><div>${title} <span class="muted">· ${esc(p.holder || "")}</span></div>
+      <div class="mono muted">${p.done}/${p.total} · ${esc(p.deadline || "")}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div></div>`;
+  });
+  document.getElementById("plans").innerHTML = plans.join("") || '<div class="empty">No active plans.</div>';
+})();
+</script>
+</body>
+</html>

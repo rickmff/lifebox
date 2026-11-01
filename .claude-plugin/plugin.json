@@ -1,0 +1,12 @@
+{
+  "name": "lifebox",
+  "version": "0.1.0",
+  "description": "Organize your life documents in your own Google Drive, Notion, OneDrive, Dropbox, Box or local folder: expiry radar, dated plans for renewals and moves, and calendar reminders.",
+  "author": {
+    "name": "rickmff"
+  },
+  "homepage": "https://github.com/rickmff/lifebox",
+  "repository": "https://github.com/rickmff/lifebox",
+  "license": "Apache-2.0",
+  "keywords": ["documents", "paperwork", "expiry", "reminders", "google-drive", "notion", "life-admin"]
+}

@@ -52,6 +52,8 @@ TYPES: dict[str, tuple[str, list[int]]] = {
     "health_insurance": ("Health Insurance", [45, 14]),
     "lease": ("Lease", [120, 90, 30]),
     "employment_contract": ("Employment Contract", [60, 14]),
+    "tax_id": ("Tax ID", []),
+    "social_security": ("Social Security", []),
     "utility_bill": ("Utility Bill", []),
     "proof_of_address": ("Proof of Address", []),
     "bank_statement": ("Bank Statement", []),
