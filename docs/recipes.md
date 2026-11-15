@@ -6,6 +6,18 @@ official sources before turning it into a plan.
 
 Recipes live in [`skills/lifebox/references/recipes/`](../skills/lifebox/references/recipes).
 
+## Bundled recipes
+
+| Recipe | For |
+|---|---|
+| `renew-passport-or-id` | Passports and ID cards |
+| `renew-driver-license` | Driver's licenses |
+| `vehicle-inspection` | Periodic vehicle inspections |
+| `insurance-renewal` | Car, home, health and other policies |
+| `rental-application` | Applying for a rental home |
+| `lease-end` | Ending or renewing a lease |
+| `moving-house` | Moving and updating your address |
+
 ## Format
 
 ````markdown

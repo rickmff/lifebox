@@ -1,119 +1,68 @@
-# lifebox
+<p align="center">
+  <img src=".claude-plugin/icon.png" width="72" height="72" alt="lifebox icon">
+</p>
 
-**Your life documents, organized by Claude, in the storage you already use.**
+<h1 align="center">lifebox</h1>
 
-![lifebox: drop a document in your Drive, Claude files it, answers questions, plans the paperwork and reminds you before anything expires](docs/assets/lifebox-flow.gif)
+<p align="center">
+  Your life documents, organized by Claude — in the storage you already use.
+</p>
 
-lifebox is an open-source skill for [Claude](https://claude.ai). It turns a folder in your Google
-Drive (or Notion, OneDrive, Dropbox, Box, or a folder on your computer) into an organized vault of
-passports, ID cards, licences, insurance policies, leases and other paperwork, and keeps track of
-what expires and what you need next.
+<p align="center">
+  <a href="https://github.com/rickmff/lifebox/actions/workflows/ci.yml"><img src="https://github.com/rickmff/lifebox/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0"></a>
+</p>
 
-There is no lifebox server, database or API key. Claude does the work through the connectors you
-already use, and everything stays in your own storage as ordinary files.
+![Drop a document in your Drive; Claude files it, answers questions, plans the paperwork and reminds you before anything expires](docs/assets/lifebox-flow.gif)
 
-## What it does
+lifebox is an open-source skill for [Claude](https://claude.ai) that turns a folder in Google
+Drive, Notion, OneDrive, Dropbox, Box or on your computer into an organized vault for passports,
+IDs, licenses, insurance policies, leases and other paperwork. There is no server, database or API
+key: Claude works through the connectors you already use, and your files stay where they are.
 
-- **Files your documents.** Drop scans or PDFs into `Lifebox/Inbox`. Claude reads them, renames
-  them like `2027-03-12 · Driver's License · Alex.pdf`, records the type, holder and dates, and
-  files them in `Lifebox/Documents`.
-- **Knows what expires.** Each lifebox conversation starts with a short list of what is expired or
-  due in the next 90 days.
-- **Answers questions.** "When does my passport expire?" "Send me the link to my lease."
-- **Plans paperwork.** "Make me a schedule to renew my driver's license" gives you a dated
-  checklist of steps and documents, checked against official sources for where you live, and
-  saved in your vault.
-- **Reminds you.** Calendar events before things expire, through your calendar connector or an
-  `.ics` file you import once.
-- **Shows an overview.** A dashboard of everything in the vault.
+## Features
 
-## How it works
+- **Inbox filing**: drop scans into `Lifebox/Inbox`; Claude reads, renames
+  (`2027-03-12 · Passport · Alex.pdf`) and files them with structured metadata.
+- **Expiry radar**: every session starts with what is expired or due in the next 90 days.
+- **Dated plans**: ask for a schedule to renew a license or move house; Claude builds a dated
+  checklist and confirms the local rules with official sources.
+- **Reminders**: calendar events through your calendar connector, or an `.ics` file to import.
+- **Dashboard**: a visual overview of every document and plan.
 
-```
-Your storage: Google Drive · Notion · OneDrive · Dropbox · Box · a local folder
-  Lifebox/Inbox · Documents · Archive · Plans
-        ⇅  Claude's connectors (or local files)
-Claude + the lifebox skill  ──→  your calendar (connector or .ics)
-```
+## Quick start
 
-| Part | What it is |
+1. **Install the skill.**
+   - Claude Code: `claude plugin install lifebox --marketplace rickmff/lifebox`
+   - Claude.ai and Claude Desktop: add this repository as a plugin, or zip the `skills/lifebox`
+     folder and upload it as a skill. Code execution must be turned on.
+2. **Connect your storage** in Settings → Connectors, or open a local folder in Claude Code or
+   Cowork.
+3. **Ask Claude:** "Set up lifebox in my Google Drive."
+
+See the [installation guide](docs/install.md) for details.
+
+## Supported storage
+
+| Storage | Status |
 |---|---|
-| [`skills/lifebox/SKILL.md`](skills/lifebox/SKILL.md) | The workflows Claude follows |
-| [`skills/lifebox/references/`](skills/lifebox/references) | Vault format, how to read documents, storage adapters, reminder rules, process recipes, dashboard |
-| [`skills/lifebox/scripts/lifebox.py`](skills/lifebox/scripts/lifebox.py) | Deterministic helpers: file names, records, dates, calendar files, passport MRZ. Python standard library only |
+| Google Drive, local folder | Verified |
+| Notion | To verify |
+| OneDrive / SharePoint, Dropbox, Box | Experimental |
 
-## Install
+Details in [docs/adapters.md](docs/adapters.md).
 
-**Claude.ai and Claude Desktop.** Add the plugin from this repository in Claude's Customize menu,
-or download `lifebox-skill.zip` from the [latest release](https://github.com/rickmff/lifebox/releases)
-and upload it as a skill. Skills need code execution turned on in your settings.
+## Documentation
 
-**Claude Code.**
+[Installation](docs/install.md) · [Storage adapters](docs/adapters.md) ·
+[Recipes](docs/recipes.md) · [Privacy](docs/privacy.md) ·
+[Skill instructions](skills/lifebox/SKILL.md) · [Vault spec](skills/lifebox/references/vault-spec.md)
 
-```bash
-claude plugin install lifebox --marketplace rickmff/lifebox
-```
+## Contributing
 
-Then turn on the connector for where your documents live (Settings → Connectors), or open a folder
-in Claude Code or Cowork. Step-by-step instructions are in [docs/install.md](docs/install.md).
-
-## Storage
-
-| Storage | Status | How records are kept |
-|---|---|---|
-| Google Drive | Verified | File description |
-| Local folder (Claude Code, Cowork) | Verified | `.lifebox.md` file next to each document |
-| Notion | To verify | Database properties |
-| OneDrive / SharePoint | Experimental | `.lifebox.md` files, or linked documents if the connector is read-only |
-| Dropbox | Experimental | `.lifebox.md` files, or linked documents |
-| Box | Experimental | File description or `.lifebox.md` files |
-
-Documents can also stay where they are (another drive, an email, a web portal) and be listed in
-the vault as linked documents. See [docs/adapters.md](docs/adapters.md).
-
-## Try it
-
-- "Set up lifebox in my Google Drive."
-- "Process my lifebox inbox."
-- "When does my passport expire?"
-- "Make me a schedule to renew my driver's license."
-- "Add calendar reminders for everything that expires this year."
-- "Show me my vault."
-
-## Recipes
-
-Generic, country-independent templates for common paperwork. Claude adapts each one to your
-country with official sources before planning.
-
-| Recipe | For |
-|---|---|
-| `renew-passport-or-id` | Passports and ID cards |
-| `renew-driver-license` | Driving licences |
-| `vehicle-inspection` | Periodic vehicle inspections |
-| `insurance-renewal` | Car, home, health and other policies |
-| `rental-application` | Applying for a rental home |
-| `lease-end` | Ending or renewing a lease |
-| `moving-house` | Moving and updating your address |
-
-New recipes are welcome: see [docs/recipes.md](docs/recipes.md).
-
-## Privacy
-
-Your files stay in your storage. Claude reads them inside your own conversations, through the
-connectors you turned on, and lifebox sends nothing anywhere else. Records keep only the last four
-characters of document numbers. Details in [docs/privacy.md](docs/privacy.md).
-
-Process guidance is general information, not legal advice. Always check the official source.
-
-## Development
-
-```bash
-python3 -m unittest discover -s tests
-claude plugin validate .
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Recipes, storage adapters and fixes are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and run
+the tests with `python3 -m unittest discover -s tests`.
 
 ## License
 
-[Apache-2.0](LICENSE)
+[Apache-2.0](LICENSE). Process guidance is general information, not legal advice.
