@@ -1,9 +1,15 @@
-node_modules
-dist
-.DS_Store
-database.db
-server/uploads
-*.log
-.env
-.env.local
+# Python
+__pycache__/
+*.pyc
 
+# local working files (video frames, test vaults, build output)
+/.work/
+/dist/
+
+# env / editor
+.env
+.env.*
+.DS_Store
+
+# video fonts (downloaded, see docs/video/README.md)
+/docs/video/fonts/

@@ -1,111 +1,68 @@
-# Galeria Upload com Busca Inteligente por IA
+<p align="center">
+  <img src=".claude-plugin/icon.png" width="72" height="72" alt="lifebox icon">
+</p>
 
-Sistema de galeria de imagens com análise automática por Google Gemini Vision e busca inteligente em linguagem natural.
+<h1 align="center">lifebox</h1>
 
-## Funcionalidades
+<p align="center">
+  Your life documents, organized by Claude — in the storage you already use.
+</p>
 
-- 📤 Upload de imagens/documentos
-- 🤖 Análise automática com Google Gemini Vision
-- 🔍 Busca inteligente em linguagem natural
-- 📋 Sugestões de documentos faltantes
-- 🏷️ Tags e keywords automáticas
-- 💾 Armazenamento em SQLite
+<p align="center">
+  <a href="https://github.com/rickmff/lifebox/actions/workflows/ci.yml"><img src="https://github.com/rickmff/lifebox/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0"></a>
+</p>
 
-## Configuração
+![Drop a document in your Drive; Claude files it, answers questions, plans the paperwork and reminds you before anything expires](docs/assets/lifebox-flow.gif)
 
-### 1. Instalar dependências
+lifebox is an open-source skill for [Claude](https://claude.ai) that turns a folder in Google
+Drive, Notion, OneDrive, Dropbox, Box or on your computer into an organized vault for passports,
+IDs, licenses, insurance policies, leases and other paperwork. There is no server, database or API
+key: Claude works through the connectors you already use, and your files stay where they are.
 
-```bash
-npm install
-```
+## Features
 
-### 2. Configurar API Key do Gemini
+- **Inbox filing**: drop scans into `Lifebox/Inbox`; Claude reads, renames
+  (`2027-03-12 · Passport · Alex.pdf`) and files them with structured metadata.
+- **Expiry radar**: every session starts with what is expired or due in the next 90 days.
+- **Dated plans**: ask for a schedule to renew a license or move house; Claude builds a dated
+  checklist and confirms the local rules with official sources.
+- **Reminders**: calendar events through your calendar connector, or an `.ics` file to import.
+- **Dashboard**: a visual overview of every document and plan.
 
-1. Obtenha uma API key gratuita em: https://aistudio.google.com/apikey
-2. Crie um arquivo `.env` na raiz do projeto:
+## Quick start
 
-```env
-GEMINI_API_KEY_AI=sua_api_key_aqui
-```
+1. **Install the skill.**
+   - Claude Code: `claude plugin install lifebox --marketplace rickmff/lifebox`
+   - Claude.ai and Claude Desktop: add this repository as a plugin, or zip the `skills/lifebox`
+     folder and upload it as a skill. Code execution must be turned on.
+2. **Connect your storage** in Settings → Connectors, or open a local folder in Claude Code or
+   Cowork.
+3. **Ask Claude:** "Set up lifebox in my Google Drive."
 
-**Nota:** O arquivo `.env` já está no `.gitignore` para segurança.
+See the [installation guide](docs/install.md) for details.
 
-### 3. Iniciar o servidor
+## Supported storage
 
-```bash
-npm run server
-```
+| Storage | Status |
+|---|---|
+| Google Drive, local folder | Verified |
+| Notion | To verify |
+| OneDrive / SharePoint, Dropbox, Box | Experimental |
 
-O servidor estará rodando em `http://localhost:3001`
+Details in [docs/adapters.md](docs/adapters.md).
 
-### 4. Iniciar o frontend
+## Documentation
 
-Em outro terminal:
+[Installation](docs/install.md) · [Storage adapters](docs/adapters.md) ·
+[Recipes](docs/recipes.md) · [Privacy](docs/privacy.md) ·
+[Skill instructions](skills/lifebox/SKILL.md) · [Vault spec](skills/lifebox/references/vault-spec.md)
 
-```bash
-npm run dev
-```
+## Contributing
 
-O frontend estará rodando em `http://localhost:5173` (ou outra porta indicada pelo Vite)
+Recipes, storage adapters and fixes are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and run
+the tests with `python3 -m unittest discover -s tests`.
 
-## Como Usar
+## License
 
-### Upload de Documentos
-
-1. Faça upload de imagens através do botão "Upload" ou arrastando arquivos
-2. As imagens serão automaticamente analisadas pelo Gemini Vision
-3. O sistema extrairá:
-   - Tipo de documento (passaporte, identidade, comprovante, etc.)
-   - Keywords relevantes
-   - Descrição do conteúdo
-   - País de origem (se aplicável)
-
-### Busca Inteligente
-
-Digite na barra de busca em linguagem natural, por exemplo:
-
-- "documentos para renovar AR em Portugal"
-- "comprovantes de residência"
-- "passaporte brasileiro"
-- "documentos de identidade"
-
-O sistema irá:
-1. Interpretar sua busca
-2. Encontrar documentos relevantes
-3. Sugerir documentos que você pode precisar mas ainda não tem
-4. Fornecer dicas de como obter documentos faltantes
-
-## Estrutura do Banco de Dados
-
-O banco SQLite armazena:
-
-- `id` - ID único
-- `filename` - Nome do arquivo no servidor
-- `originalname` - Nome original
-- `mimetype` - Tipo MIME
-- `size` - Tamanho em bytes
-- `created_at` - Data de criação
-- `ai_description` - Descrição gerada pela IA
-- `ai_keywords` - Keywords separadas por vírgula
-- `ai_document_type` - Tipo de documento identificado
-- `ai_country` - País do documento (se aplicável)
-- `ai_typical_use` - Uso típico do documento
-
-## Tecnologias
-
-- **Frontend:** React + Vite + TailwindCSS
-- **Backend:** Express.js + SQLite
-- **IA:** Google Gemini Vision API
-- **Upload:** Multer
-
-## Visualizar Banco de Dados
-
-Acesse `http://localhost:3001/db` para ver uma visualização HTML do banco de dados.
-
-## Notas
-
-- A análise por IA acontece automaticamente no upload
-- Se a API key não estiver configurada, o sistema funcionará mas sem análise inteligente
-- A busca funciona melhor com pelo menos 3 caracteres
-- Os resultados são filtrados em tempo real conforme você digita
-
+[Apache-2.0](LICENSE). Process guidance is general information, not legal advice.

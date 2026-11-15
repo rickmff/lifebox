@@ -1,0 +1,17 @@
+{
+  "name": "lifebox",
+  "owner": {
+    "name": "rickmff"
+  },
+  "metadata": {
+    "description": "lifebox: your life documents, organized by Claude in the storage you already use."
+  },
+  "plugins": [
+    {
+      "name": "lifebox",
+      "source": "./",
+      "description": "Organize your life documents in your own Google Drive, Notion, OneDrive, Dropbox, Box or local folder: expiry radar, dated plans for renewals and moves, and calendar reminders.",
+      "category": "productivity"
+    }
+  ]
+}
